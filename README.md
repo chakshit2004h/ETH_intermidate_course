@@ -4,7 +4,13 @@ The solidity program "Error Handling" is a program in which I have discussed the
 
 ## Description
 
-This Solidity smart contract named "Error" showcases various error handling mechanisms within Ethereum's blockchain environment. The contract defines two state variables, `a` and `b`, both of type `uint`. The function `testRequire` takes two parameters `_a` and `_b`, and it utilizes the `require` statement to enforce specific conditions (`_a > 2` and `_b > 5`) before allowing the function to proceed, reverting with a custom error message if the conditions are not met. Upon successful validation, `_a` and `_b` are assigned to `a` and `b`, respectively. The `add` function, marked as view, returns the sum of `a` and `b`. Another function, `testAssert`, uses the `assert` statement to validate whether the sum of `a` and `b` equals a provided value `c`. Lastly, the `testRevert` function, marked as pure, checks if a provided value `d` is greater than 2; if so, it reverts execution with a custom error message indicating that the number must be less than or equal to 2. This contract serves as an educational tool to understand and experiment with error handling in Solidity.
+The provided Solidity code defines a smart contract named SimplePointBank, which serves as a basic point banking system on the Ethereum blockchain. The contract includes mechanisms for users to deposit and withdraw points, view their balance, and for the owner to perform emergency withdrawals if necessary.
+
+The contract has two main state variables: balances, a mapping that associates each user's Ethereum address with their point balance, and owner, which stores the address of the contract owner (the account that deployed the contract).
+
+The constructor sets the owner to the deploying address. Users can deposit points using the deposit function, which requires the amount to be greater than zero and adds the specified amount to the user's balance. The withdraw function allows users to withdraw points, ensuring the amount is positive and that the user has enough balance. The getBalance function enables users to check their point balance.
+
+The contract also includes a checkInvariant function, which asserts that the contract's balance is non-negative, serving as a basic check. The emergencyWithdraw function allows the owner to transfer all contract funds to their account, but only if the balance is non-zero. This function reverts the transaction if called by anyone other than the owner or if there are no funds available.
 ## Getting Started
 
 ### Installing
@@ -16,39 +22,51 @@ To download the code, you can visit the following file path:- https://github.com
 To run this program, you can use Remix, an online Solidity IDE. To get started, go to the Remix website at https://remix.ethereum.org/.
 
 Once you are on the Remix website, create a new file by clicking on the "+" icon in the left-hand sidebar. Save the file with a .sol extension (e.g., HelloWorld.sol). Copy and paste the following code into the file:
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
 
-    contract Error{
-    uint a;
-    uint b;
+     // SPDX-License-Identifier: MIT
+    pragma solidity ^0.8.0;
 
-    function testRequire(uint _a,uint _b) public {
-        require(_a>2 && _b>5,"Not satisfy the required condition");
-        a = _a;
-        b = _b;
-    
-    }
-    function add() public view  returns(uint){
-        return a + b;
-    }
+    contract SimplePointBank {
+        mapping(address => uint256) public balances;
+        address public owner;
 
-    function testAssert(uint c) public view {
-        assert(a+b == c);
-    }
-
-    function testRevert(uint d) public pure{
-        if (d > 2){
-            revert("Number must be less than or equal to 2");
+        constructor() {
+            owner = msg.sender;
         }
-    }}
+
+        function deposit(uint256 amount) external {
+            require(amount > 0, "Deposit amount must be greater than zero");
+            balances[msg.sender] += amount;
+        }
+        function withdraw(uint256 amount) external {
+            require(amount > 0, "Withdrawal amount must be greater than zero");
+            require(balances[msg.sender] >= amount, "Insufficient balance");
+            balances[msg.sender] -= amount;
+        }
+        function getBalance() external view returns (uint256) {
+            return balances[msg.sender];
+        }
+
+        function checkInvariant() external view {
+            assert(address(this).balance >= 0);
+        }
+
+        function emergencyWithdraw() external {
+            require(msg.sender == owner, "Only the owner can perform an emergency withdrawal");
+            if (address(this).balance == 0) {
+                revert("No funds available for emergency withdrawal");
+            }
+
+            balances[owner] += address(this).balance;
+        }}
+
 
 
 To compile the code, click on the "Solidity Compiler" tab in the left-hand sidebar. Make sure the "Compiler" option is set to "0.8.25" (or another compatible version), and then click on the "Compile errorHandling.sol" button.
 
 Once the code is compiled, you can deploy the contract by clicking on the "Deploy & Run Transactions" tab in the left-hand sidebar. Select the "Error" contract from the dropdown menu, and then click on the "Deploy" button.
 
-Once the contract is deployed, you will set the value and see the working of require(), assert(), revert().
+Once the contract is deployed, you will set the deposit in the bank and then you can check your balances, withdraw amount and there is also uses of require(), assert() and revert().
 
 
 ## Authors
